@@ -567,142 +567,147 @@ async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: W
                     tools=TOOLS  # Enable function calling
                 )
 
-                if response.get("type") == "tool_call":
-                    # LLM wants to call tools
-                    tool_calls = response.get("tool_calls", [])
-                    logger.info(f"🔧 LLM requested {len(tool_calls)} tool call(s)")
+            except Exception as llm_error:
+                error_msg = str(llm_error)
 
-                    # Execute all tool calls
-                    for tool_call in tool_calls:
-                        tool_name = tool_call["name"]
-                        arguments = tool_call["arguments"]
-                        tool_call_id = tool_call.get("id", "")
+                # Check if this is a tool validation error from Groq
+                if "tool call validation failed" in error_msg or "missing properties" in error_msg:
+                    logger.warning(f"⚠️  LLM tried to call tool with invalid arguments: {error_msg}")
+                    logger.warning("🔄 Retrying without tools to get text response...")
 
-                        logger.info(f"🔧 Executing tool: {tool_name} with args: {arguments}")
+                    # Retry WITHOUT tools - force text response
+                    try:
+                        response = await llm_service.chat(
+                            messages,
+                            temperature=0.3,
+                            max_tokens=1000,
+                            tools=None  # Disable tools to force text response
+                        )
+                    except Exception as retry_error:
+                        logger.error(f"❌ Retry also failed: {retry_error}")
+                        raise
+                else:
+                    # Different error, re-raise
+                    raise
 
-                        # Execute the tool
-                        result = await tool_executor.execute_tool(tool_name, arguments)
-                        logger.info(f"✅ Tool {tool_name} result: {result}")
+            # Continue with normal flow
+            if response.get("type") == "tool_call":
+                # LLM wants to call tools
+                tool_calls = response.get("tool_calls", [])
+                logger.info(f"🔧 LLM requested {len(tool_calls)} tool call(s)")
 
-                        # Send real-time updates to frontend
-                        if tool_name in ["add_item_to_order", "remove_item_from_order"]:
-                            # Update cart display in real-time
-                            await websocket.send_json({
-                                "type": "order_update",
-                                "current_order": client_state.get("current_order", []),
-                                "total": sum(item.get("price", 0) * item.get("quantity", 0)
-                                           for item in client_state.get("current_order", []))
-                            })
+                # Execute all tool calls
+                for tool_call in tool_calls:
+                    tool_name = tool_call["name"]
+                    arguments = tool_call["arguments"]
+                    tool_call_id = tool_call.get("id", "")
 
-                        elif tool_name == "confirm_and_save_order":
-                            if result.get("success"):
-                                # Order confirmed! Send confirmation to frontend
-                                await websocket.send_json({
-                                    "type": "order_confirmed",
-                                    "order_id": result.get("order_id"),
-                                    "items": result.get("items", []),
-                                    "total": result.get("total", 0),
-                                    "order_number": result.get("order_number"),
-                                    "show_confirmation": True,
-                                    "confirmation_duration": result.get("confirmation_duration", 10)
-                                })
-                                logger.info(f"📤 Sent order confirmation to frontend - Order #{result.get('order_id')}")
-                            else:
-                                # Order failed - notify frontend with error
-                                logger.error(f"❌ Order confirmation failed: {result.get('error')}")
-                                await websocket.send_json({
-                                    "type": "order_failed",
-                                    "error": result.get("error", "Unknown error"),
-                                    "order_details": result.get("order_details", [])
-                                })
+                    logger.info(f"🔧 Executing tool: {tool_name} with args: {arguments}")
 
-                        # Add tool result to messages for LLM
-                        messages.append({
-                            "role": "tool",
-                            "tool_call_id": tool_call_id,
-                            "name": tool_name,
-                            "content": json.dumps(result, ensure_ascii=False)
+                    # Execute the tool
+                    result = await tool_executor.execute_tool(tool_name, arguments)
+                    logger.info(f"✅ Tool {tool_name} result: {result}")
+
+                    # Send real-time updates to frontend
+                    if tool_name in ["add_item_to_order", "remove_item_from_order"]:
+                        # Update cart display in real-time
+                        await websocket.send_json({
+                            "type": "order_update",
+                            "current_order": client_state.get("current_order", []),
+                            "total": sum(item.get("price", 0) * item.get("quantity", 0)
+                                       for item in client_state.get("current_order", []))
                         })
 
-                    # Get LLM's final response after tool execution
-                    logger.info("📤 Getting LLM's response after tool execution...")
-                    final_response = await llm_service.chat(
-                        messages,
-                        temperature=0.3,
-                        max_tokens=1000,
-                        tools=TOOLS
-                    )
+                    elif tool_name == "confirm_and_save_order":
+                        if result.get("success"):
+                            # Order confirmed! Send confirmation to frontend
+                            await websocket.send_json({
+                                "type": "order_confirmed",
+                                "order_id": result.get("order_id"),
+                                "items": result.get("items", []),
+                                "total": result.get("total", 0),
+                                "order_number": result.get("order_number"),
+                                "show_confirmation": True,
+                                "confirmation_duration": result.get("confirmation_duration", 10)
+                            })
+                            logger.info(f"📤 Sent order confirmation to frontend - Order #{result.get('order_id')}")
+                        else:
+                            # Order failed - notify frontend with error
+                            logger.error(f"❌ Order confirmation failed: {result.get('error')}")
+                            await websocket.send_json({
+                                "type": "order_failed",
+                                "error": result.get("error", "Unknown error"),
+                                "order_details": result.get("order_details", [])
+                            })
 
-                    # Handle response - could be text or another tool call
-                    if final_response.get("type") == "text":
-                        content = final_response.get("content", "")
-                    elif final_response.get("type") == "tool_call":
-                        # LLM wants to call more tools - this is OK, continue the loop
-                        logger.info("🔄 LLM requested more tools after previous execution")
-                        continue
-                    else:
-                        # If LLM doesn't return text, skip TTS
-                        logger.warning("⚠️ LLM returned no text after tool execution")
-                        content = ""  # Empty - will be skipped by TTS
-
-                elif response.get("type") == "text":
-                    content = response.get("content", "")
-                    logger.info(f"✅ Groq response received: {content[:100]}...")
-
-                    # Remove "System:" prefix if present
-                    if content.startswith("சிஸ்டம்:"):
-                        content = content[8:].strip()
-                    elif content.startswith("System:"):
-                        content = content[7:].strip()
-
-                    # Apply price filter to remove price mentions if user didn't ask
-                    content = filter_price_mentions(user_input, content)
-
-                else:
-                    logger.error("❌ Unexpected response type from Groq")
-                    content = "மன்னிக்கவும், தொழில்நுட்ப சிக்கல்."
-
-                # Send final text response to TTS
-                if content.strip():
-                    logger.info(f"📢 Sending complete response to TTS: {content[:50]}...")
-
-                    # Signal audio stream start (for frontend to reset state)
-                    await websocket.send_json({
-                        "type": "audio_stream_start"
+                    # Add tool result to messages for LLM
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call_id,
+                        "name": tool_name,
+                        "content": json.dumps(result, ensure_ascii=False)
                     })
 
-                    tts_task = asyncio.create_task(
-                        send_sentence_to_tts(
-                            content,
-                            1,  # sentence number
-                            websocket,
-                            client_state
-                        )
-                    )
-                    tts_tasks.append(tts_task)
-                    sentence_count = 1
+                # Get LLM's final response after tool execution
+                logger.info("📤 Getting LLM's response after tool execution...")
+                final_response = await llm_service.chat(
+                    messages,
+                    temperature=0.3,
+                    max_tokens=1000,
+                    tools=TOOLS
+                )
+
+                # Handle response - could be text or another tool call
+                if final_response.get("type") == "text":
+                    content = final_response.get("content", "")
+                elif final_response.get("type") == "tool_call":
+                    # LLM wants to call more tools - this is OK, continue the loop
+                    logger.info("🔄 LLM requested more tools after previous execution")
+                    continue
                 else:
-                    logger.warning("⚠️ No content to send to TTS")
-                    sentence_count = 0
+                    # If LLM doesn't return text, skip TTS
+                    logger.warning("⚠️ LLM returned no text after tool execution")
+                    content = ""  # Empty - will be skipped by TTS
 
-            except Exception as e:
-                logger.error(f"❌ Error calling Groq: {e}")
-                import traceback
-                traceback.print_exc()
-                content = "மன்னிக்கவும், பிழை ஏற்பட்டது."
+            elif response.get("type") == "text":
+                content = response.get("content", "")
+                logger.info(f"✅ Groq response received: {content[:100]}...")
 
-                await websocket.send_json({"type": "audio_stream_start"})
+                # Remove "System:" prefix if present
+                if content.startswith("சிஸ்டம்:"):
+                    content = content[8:].strip()
+                elif content.startswith("System:"):
+                    content = content[7:].strip()
+
+                # Apply price filter to remove price mentions if user didn't ask
+                content = filter_price_mentions(user_input, content)
+
+            else:
+                logger.error("❌ Unexpected response type from Groq")
+                content = "மன்னிக்கவும், தொழில்நுட்ப சிக்கல்."
+
+            # Send final text response to TTS
+            if content.strip():
+                logger.info(f"📢 Sending complete response to TTS: {content[:50]}...")
+
+                # Signal audio stream start (for frontend to reset state)
+                await websocket.send_json({
+                    "type": "audio_stream_start"
+                })
 
                 tts_task = asyncio.create_task(
                     send_sentence_to_tts(
                         content,
-                        1,
+                        1,  # sentence number
                         websocket,
                         client_state
                     )
                 )
                 tts_tasks.append(tts_task)
                 sentence_count = 1
+            else:
+                logger.warning("⚠️ No content to send to TTS")
+                sentence_count = 0
 
             logger.info(f"📊 Response processing complete - sentence_count: {sentence_count}")
 
@@ -741,14 +746,6 @@ async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: W
             })
             return
 
-        # If we hit max iterations, return error
-        logger.error("Max LLM iterations reached")
-        await websocket.send_json({
-            "type": "error",
-            "message": "Sorry, I encountered an error processing your request."
-        })
-        return
-
     except RuntimeError as e:
         if "StopAsyncIteration" in str(e):
             logger.error(f"Chat streaming error (StopAsyncIteration): {e}")
@@ -780,7 +777,7 @@ async def sync_qdrant_task():
 
     while True:
         try:
-            logger.info("Background sync: Syncing Qdrant from PostgreSQL...")
+            logger.debug("Background sync: Syncing Qdrant from PostgreSQL...")
             if vector_store_service:
                 await vector_store_service.sync_from_database()
             else:

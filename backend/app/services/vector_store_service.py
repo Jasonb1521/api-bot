@@ -231,11 +231,11 @@ class VectorStoreService:
         Called periodically to keep Qdrant in sync with database.
         """
         try:
-            logger.info("Starting Qdrant sync from PostgreSQL...")
+            logger.debug("Starting Qdrant sync from PostgreSQL...")
 
             # Get all menu items from database
             menu_items = await db_service.get_all_menu_items()
-            logger.info(f"Loaded {len(menu_items)} menu items from database for sync")
+            logger.debug(f"Loaded {len(menu_items)} menu items from database for sync")
 
             if not menu_items:
                 logger.warning("No menu items found in database, skipping sync")
@@ -276,7 +276,7 @@ class VectorStoreService:
 
             # Upsert all points (updates existing, adds new)
             self.client.upsert(collection_name=self.collection_name, points=points)
-            logger.info(f"✓ Synced {len(points)} menu items from PostgreSQL to Qdrant")
+            logger.debug(f"✓ Synced {len(points)} menu items from PostgreSQL to Qdrant")
 
         except Exception as e:
             logger.error(f"Error syncing Qdrant from database: {e}")
