@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: admin-postgres
+    environment:
+      POSTGRES_DB: hotelbot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5433:5432"
+    volumes:
+      - admin-postgres-data:/var/lib/postgresql/data
+      - ../backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - admin-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: admin-backend
+    ports:
+      - "5001:5000"
+    environment:
+      PORT: 5000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: hotelbot
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - admin-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: admin-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - admin-network
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+
+networks:
+  admin-network:
+    driver: bridge
+
+volumes:
+  admin-postgres-data:

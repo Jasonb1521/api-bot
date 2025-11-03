@@ -1,0 +1,58 @@
+================================
+    SIMPLE BILL FORMAT
+================================
+
+This is what your printed bill will look like:
+
+--------------------------------
+Table: 12
+Order: A5678
+Date: 26-10-2025  03:30 PM
+--------------------------------
+Item                     Qty
+--------------------------------
+Masala Dosa                2
+Idli Sambar                1
+Vada                       3
+Filter Coffee              2
+Pongal                     1
+Rava Dosa                  1
+--------------------------------
+
+
+That's it! Simple and minimal.
+
+================================
+    HOW TO USE
+================================
+
+1. Edit test_print.py:
+
+items = [
+    {"name": "Masala Dosa", "qty": 2},
+    {"name": "Filter Coffee", "qty": 1},
+]
+
+2. Run: python3 test_print.py
+
+3. Your bill prints!
+
+================================
+    FORMAT
+================================
+
+Only includes:
+✓ Table Number
+✓ Order Number
+✓ Date & Time (auto-generated)
+✓ Item Name
+✓ Quantity
+
+Does NOT include:
+✗ Prices
+✗ Totals
+✗ Taxes
+✗ Restaurant info
+✗ Footer messages
+
+================================

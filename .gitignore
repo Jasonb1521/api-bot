@@ -1,0 +1,177 @@
+# ============================================
+# ENVIRONMENT VARIABLES & SECRETS
+# ============================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.crt
+credentials.json
+secrets.json
+
+# ============================================
+# PYTHON
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+test_*.py
+*_test.py
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmyp.json
+
+# ============================================
+# NODE.JS / REACT / FRONTEND
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+.npm
+.eslintcache
+
+# Build outputs
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.next/
+frontend/out/
+Admin-Dash/admin-dashboard/dist/
+Admin-Dash/admin-dashboard/build/
+
+# Compiled CSS
+*.css.map
+
+# Coverage
+coverage/
+.nyc_output/
+
+# ============================================
+# IDEs & EDITORS
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# OPERATING SYSTEMS
+# ============================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+
+# ============================================
+# DATABASE & STORAGE
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+postgresql_data/
+pgdata/
+
+# Vector store data (Qdrant)
+qdrant_storage/
+qdrant_data/
+
+# ============================================
+# LOGS
+# ============================================
+*.log
+*.log.*
+logs/
+
+# ============================================
+# DOCKER
+# ============================================
+.dockerignore
+
+# ============================================
+# ML MODELS & CACHE
+# ============================================
+models/
+*.bin
+*.pt
+*.pth
+*.onnx
+.torch/
+.cache/
+huggingface/
+
+# ============================================
+# AUDIO FILES (temporary)
+# ============================================
+*.wav
+*.mp3
+*.ogg
+audio_cache/
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+tmp/
+temp/
+
+# Printing temporary files
+printing/temp/
+printing/cache/
+
+# Session data
+sessions/
+*.session
+
+# ============================================
+# JUPYTER NOTEBOOKS
+# ============================================
+.ipynb_checkpoints

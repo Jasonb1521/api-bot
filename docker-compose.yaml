@@ -1,0 +1,257 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: hotelorderbot-frontend
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    restart: unless-stopped
+    networks:
+      - hotelorderbot-network
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--no-check-certificate", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: hotelorderbot-qdrant
+    ports:
+      - "0.0.0.0:6333:6333"
+      - "0.0.0.0:6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+    networks:
+      - hotelorderbot-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6333/readyz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hotelorderbot-backend
+    ports:
+      - "0.0.0.0:8080:8080"
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GROQ_MODEL=${GROQ_MODEL}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL}
+      - SARVAM_API_KEY=${SARVAM_API_KEY}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - backend_hf_cache:/root/.cache/huggingface
+      - backend_torch_cache:/root/.cache/torch
+      - ./backend/app:/app/app
+    restart: unless-stopped
+    networks:
+      - hotelorderbot-network
+    depends_on:
+      qdrant:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # VLLM service commented out - now using Groq API
+  # vllm:
+  #   build:
+  #     context: ./Vllm
+  #     dockerfile: Dockerfile
+  #   container_name: hotelorderbot-vllm
+  #   runtime: nvidia
+  #   environment:
+  #     - CUDA_VISIBLE_DEVICES=0
+  #     - HF_TOKEN=${HF_TOKEN}
+  #     - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+  #   volumes:
+  #     - vllm_cache:/root/.cache/huggingface
+  #     - vllm_models:/models
+  #   ports:
+  #     - "0.0.0.0:4000:8000"
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids: ['0']
+  #             capabilities: [gpu]
+  #   restart: unless-stopped
+  #   networks:
+  #     - hotelorderbot-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+  #     interval: 60s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 180s
+
+  # ASR service removed - now using Sarvam API
+  # hotelorderbot-asr:
+  #   build:
+  #     context: ./Asr
+  #     dockerfile: Dockerfile
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=0
+  #     - CUDA_VISIBLE_DEVICES=0
+  #   volumes:
+  #     - ./Asr/model_repository:/models
+  #   ports:
+  #     - "8003:8000"
+  #     - "8001:8001"
+  #     - "8002:8002"
+  #   container_name: hotelorderbot-asr
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids: ['0']
+  #             capabilities: [gpu]
+  #   restart: unless-stopped
+  #   stdin_open: true
+  #   tty: true
+  #   ulimits:
+  #     memlock: -1
+  #     stack: 67108864
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+  #     interval: 120s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 120s
+  #   networks:
+  #     - hotelorderbot-network
+
+  # TTS service removed - now using Sarvam API
+  # hotelorderbot-tts:
+  #   build:
+  #     context: ./tts
+  #     dockerfile: Dockerfile
+  #   runtime: nvidia
+  #   environment:
+  #     - HF_TOKEN=${HF_TOKEN}
+  #     - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}
+  #     # Use GPU for faster generation
+  #     - NVIDIA_VISIBLE_DEVICES=0
+  #     - CUDA_VISIBLE_DEVICES=0
+  #   volumes:
+  #     - ./tts/model_repository:/models
+  #     - tts_cache:/root/.cache/huggingface
+  #     - tts_models:/root/.cache/torch
+  #   ports:
+  #     - "8004:8000"
+  #     - "8005:8001"
+  #     - "8006:8002"
+  #   container_name: hotelorderbot-tts
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             device_ids: ['0']
+  #             capabilities: [gpu]
+  #   shm_size: '512mb'
+  #   restart: unless-stopped
+  #   stdin_open: true
+  #   tty: true
+  #   ulimits:
+  #     memlock: -1
+  #     stack: 67108864
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+  #     interval: 120s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 180s
+  #   networks:
+  #     - hotelorderbot-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: hotelorderbot-postgres
+    environment:
+      POSTGRES_DB: hotelbot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/scripts/init_menu.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hotelorderbot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  admin-backend:
+    build:
+      context: ./Admin-Dash/backend
+      dockerfile: Dockerfile
+    container_name: hotelorderbot-admin-backend
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      DB_HOST: hotelorderbot-postgres
+      DB_PORT: 5432
+      DB_NAME: hotelbot
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hotelorderbot-network
+    restart: unless-stopped
+
+networks:
+  hotelorderbot-network:
+    driver: bridge
+
+volumes:
+  triton-model-repo:
+    driver: local
+  qdrant_storage:
+    driver: local
+  vllm_cache:
+    driver: local
+  vllm_models:
+    driver: local
+  tts_cache:
+    driver: local
+  tts_models:
+    driver: local
+  backend_hf_cache:
+    driver: local
+  backend_torch_cache:
+    driver: local
+  postgres_data:
+    driver: local

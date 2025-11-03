@@ -1,0 +1,45 @@
+.siri-orb-container {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  margin: 0;
+}
+
+.siri-orb-container:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.siri-orb-container:hover {
+  transform: scale(1.05);
+  background: transparent !important;
+}
+
+.siri-orb-container:active {
+  transform: scale(0.95);
+  background: transparent !important;
+}
+
+.siri-orb-container.recording {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}

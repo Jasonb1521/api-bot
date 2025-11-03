@@ -1,0 +1,383 @@
+{
+  "restaurant_info": {
+    "name": "Appuchi Villas",
+    "cuisine_type": "Indian & Chinese Fusion"
+  },
+  "menu": {
+    "items": [
+      {
+        "dish_id": "001",
+        "name": "Omelette",
+        "description": "Fluffy egg omelette",
+        "category": "Breakfast",
+        "price": 40.0,
+        "image": "Appuchi Villas/omblete.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "Breakfast",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "002",
+        "name": "Veg Fried Rice",
+        "description": "Stir-fried rice with fresh vegetables",
+        "category": "Rice",
+        "price": 120.0,
+        "image": "Appuchi Villas/25veg fried rice.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "003",
+        "name": "Chicken Fried Rice",
+        "description": "Fried rice with chicken pieces and vegetables",
+        "category": "Rice",
+        "price": 150.0,
+        "image": "Appuchi Villas/26chicken fried rice.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 7
+      },
+      {
+        "dish_id": "004",
+        "name": "Egg Fried Rice",
+        "description": "Fried rice with scrambled eggs",
+        "category": "Rice",
+        "price": 130.0,
+        "image": "Appuchi Villas/28egg fried rice.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "005",
+        "name": "Gobi Fried Rice",
+        "description": "Fried rice with cauliflower florets",
+        "category": "Rice",
+        "price": 130.0,
+        "image": "Appuchi Villas/29gobi fried rice.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "006",
+        "name": "Paneer Fried Rice",
+        "description": "Fried rice with cottage cheese cubes",
+        "category": "Rice",
+        "price": 140.0,
+        "image": "Appuchi Villas/30panner fried rice.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "007",
+        "name": "Gobi Noodles",
+        "description": "Stir-fried noodles with cauliflower",
+        "category": "Noodles",
+        "price": 130.0,
+        "image": "Appuchi Villas/32gobi noodles.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "008",
+        "name": "Egg Noodles",
+        "description": "Hakka noodles with eggs",
+        "category": "Noodles",
+        "price": 130.0,
+        "image": "Appuchi Villas/33egg noodles.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "009",
+        "name": "Chicken Noodles",
+        "description": "Noodles tossed with chicken and vegetables",
+        "category": "Noodles",
+        "price": 150.0,
+        "image": "Appuchi Villas/34chicken noodles.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 7
+      },
+      {
+        "dish_id": "010",
+        "name": "Veg Noodles",
+        "description": "Classic vegetable noodles",
+        "category": "Noodles",
+        "price": 120.0,
+        "image": "Appuchi Villas/35veg noodles.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 6
+      },
+      {
+        "dish_id": "011",
+        "name": "Schezwan Egg Rice",
+        "description": "Spicy schezwan fried rice with eggs",
+        "category": "Rice",
+        "price": 140.0,
+        "image": "Appuchi Villas/36schewzan egg rice.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "012",
+        "name": "Schezwan Gobi Rice",
+        "description": "Spicy schezwan rice with cauliflower",
+        "category": "Rice",
+        "price": 140.0,
+        "image": "Appuchi Villas/37schewzan gobi rice.jpg",
+        "dietary_tags": [
+          "Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "013",
+        "name": "Schezwan Fried Rice",
+        "description": "Spicy schezwan fried rice with vegetables",
+        "category": "Rice",
+        "price": 130.0,
+        "image": "Appuchi Villas/39 schewzan fried rice.jpg",
+        "dietary_tags": [
+          "Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "014",
+        "name": "Schezwan Paneer Rice",
+        "description": "Spicy schezwan rice with paneer",
+        "category": "Rice",
+        "price": 150.0,
+        "image": "Appuchi Villas/40 schewzan panner rice.jpg",
+        "dietary_tags": [
+          "Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "015",
+        "name": "Schezwan Egg Noodles",
+        "description": "Spicy schezwan noodles with eggs",
+        "category": "Noodles",
+        "price": 140.0,
+        "image": "Appuchi Villas/41schewzan egg noodles.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "016",
+        "name": "Schezwan Paneer Noodles",
+        "description": "Spicy schezwan noodles with cottage cheese",
+        "category": "Noodles",
+        "price": 150.0,
+        "image": "Appuchi Villas/43schewzan panner noodles.jpg",
+        "dietary_tags": [
+          "Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "017",
+        "name": "Schezwan Chicken Noodles",
+        "description": "Spicy schezwan noodles with chicken",
+        "category": "Noodles",
+        "price": 160.0,
+        "image": "Appuchi Villas/44schewzan chicken noodles.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "018",
+        "name": "Schezwan Veg Noodles",
+        "description": "Spicy schezwan vegetable noodles",
+        "category": "Noodles",
+        "price": 130.0,
+        "image": "Appuchi Villas/45schezwan veg noodles.jpg",
+        "dietary_tags": [
+          "Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "019",
+        "name": "Chicken Biryani",
+        "description": "Aromatic basmati rice with tender chicken pieces",
+        "category": "Biryani",
+        "price": 180.0,
+        "image": "Appuchi Villas/chicken biriyani.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 9
+      },
+      {
+        "dish_id": "020",
+        "name": "Chicken Fry",
+        "description": "Crispy fried chicken pieces",
+        "category": "Starters",
+        "price": 160.0,
+        "image": "Appuchi Villas/chicken fry.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "021",
+        "name": "Chicken Leg",
+        "description": "Grilled or fried chicken leg piece",
+        "category": "Starters",
+        "price": 100.0,
+        "image": "Appuchi Villas/chicken leg.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "022",
+        "name": "Fish Curry",
+        "description": "Fresh fish cooked in traditional spicy curry",
+        "category": "Curry",
+        "price": 200.0,
+        "image": "Appuchi Villas/fish curry.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 7
+      },
+      {
+        "dish_id": "023",
+        "name": "Kudal Fry",
+        "description": "Spicy fried intestines delicacy",
+        "category": "Starters",
+        "price": 180.0,
+        "image": "Appuchi Villas/kudal fry.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "024",
+        "name": "Meals",
+        "description": "Traditional South Indian thali with rice and sides",
+        "category": "Meals",
+        "price": 150.0,
+        "image": "Appuchi Villas/meals.jpg",
+        "dietary_tags": [
+          "Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 9
+      },
+      {
+        "dish_id": "025",
+        "name": "Mutton Fry",
+        "description": "Spicy fried mutton pieces",
+        "category": "Starters",
+        "price": 220.0,
+        "image": "Appuchi Villas/mutton fry.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      },
+      {
+        "dish_id": "026",
+        "name": "Palipalayam Chicken",
+        "description": "Spicy Kongu-style chicken fry",
+        "category": "Starters",
+        "price": 180.0,
+        "image": "Appuchi Villas/palipalayam chicken.jpg",
+        "dietary_tags": [
+          "Non-Vegetarian",
+          "Spicy"
+        ],
+        "availability_status": "Available",
+        "meal_period": "All-Day",
+        "popularity_score": 8
+      }
+    ]
+  }
+}
