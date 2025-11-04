@@ -198,7 +198,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/scripts/init_menu.sql:/docker-entrypoint-initdb.d/init.sql
@@ -228,6 +228,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - hotelorderbot-network
+    restart: unless-stopped
+
+  admin-frontend:
+    build:
+      context: ./Admin-Dash/admin-dashboard
+      dockerfile: Dockerfile
+    container_name: hotelorderbot-admin-frontend
+    ports:
+      - "3000:80"
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    depends_on:
+      - admin-backend
     networks:
       - hotelorderbot-network
     restart: unless-stopped

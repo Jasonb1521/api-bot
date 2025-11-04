@@ -3,7 +3,8 @@
 
 -- Create menu_items table
 CREATE TABLE IF NOT EXISTS menu_items (
-    dish_id VARCHAR(50) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    dish_id VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100) NOT NULL,
@@ -35,6 +36,16 @@ CREATE TABLE IF NOT EXISTS orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create tables table for managing restaurant tables
+CREATE TABLE IF NOT EXISTS tables (
+    id SERIAL PRIMARY KEY,
+    table_number VARCHAR(20) UNIQUE NOT NULL,
+    capacity INTEGER NOT NULL,
+    status VARCHAR(20) DEFAULT 'available',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create trigger to auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -49,6 +60,9 @@ CREATE TRIGGER update_menu_items_updated_at BEFORE UPDATE
 
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE
     ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_tables_updated_at BEFORE UPDATE
+    ON tables FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Print success message
 DO $$

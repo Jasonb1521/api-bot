@@ -332,7 +332,10 @@ class OrderToolExecutor:
 
             try:
                 async with conn.transaction():
-                    # Create order record
+                    # Prepare items for JSONB storage
+                    items_json = json.dumps(order_items)
+
+                    # Create order record with items in JSONB column
                     order_id = await conn.fetchval(
                         """
                         INSERT INTO orders (table_number, status, total, items, created_at)
@@ -342,10 +345,10 @@ class OrderToolExecutor:
                         table_number,
                         "confirmed",
                         total_amount,
-                        json.dumps([])  # Empty JSON array as string
+                        items_json
                     )
 
-                    logger.info(f"📝 Created order #{order_id} in database")
+                    logger.info(f"📝 Created order #{order_id} in database with {len(order_items)} items")
 
                     # Update each item's inventory
                     for item in order_items:
@@ -377,18 +380,6 @@ class OrderToolExecutor:
                         )
 
                         logger.info(f"✅ {item['name']}: quantity reduced by {item['quantity']}")
-
-                        # Save order item
-                        await conn.execute(
-                            """
-                            INSERT INTO order_items (order_id, dish_id, quantity, price)
-                            VALUES ($1, $2, $3, $4)
-                            """,
-                            order_id,
-                            item['dish_id'],
-                            item['quantity'],
-                            item['price']
-                        )
 
                     logger.info(f"✅ Database updated successfully for Order #{order_id}")
 

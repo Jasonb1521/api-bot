@@ -12,25 +12,29 @@ const FoodItemCard = ({ item, onClose }) => {
     const card = cardRef.current
     if (!card) return
 
+    console.log(`🎴 FoodItemCard: Starting animation for ${item.name}`)
+
     // Kill any existing timeline and animations
     if (timelineRef.current) {
       timelineRef.current.kill()
     }
     gsap.killTweensOf(card)
 
-    // Set initial state immediately (no transition)
+    // Set initial state immediately
     gsap.set(card, {
       scale: 0,
       opacity: 0,
       y: 50,
-      transformOrigin: 'center center',
-      clearProps: 'all'  // Clear any previous inline styles
+      transformOrigin: 'center center'
     })
 
     // Create a new timeline for complete control
     timelineRef.current = gsap.timeline({
       onComplete: () => {
-        if (onClose) onClose()
+        console.log(`🎴 FoodItemCard: Animation complete for ${item.name}, calling onClose`)
+        if (onClose) {
+          onClose()
+        }
       }
     })
 
@@ -39,23 +43,26 @@ const FoodItemCard = ({ item, onClose }) => {
       scale: 1,
       opacity: 1,
       y: 0,
-      duration: 0.6,
+      duration: 0.5,
       ease: 'back.out(1.7)',
-      force3D: true  // Force GPU acceleration
+      force3D: true
     })
 
-    // Add pause (stay visible)
-    timelineRef.current.to({}, { duration: 3 })
+    // Add pause (stay visible) - 2 seconds
+    timelineRef.current.to({}, { duration: 2 })
 
     // Add exit animation to timeline
     timelineRef.current.to(card, {
       scale: 0.8,
       opacity: 0,
       y: -30,
-      duration: 0.5,
+      duration: 0.4,
       ease: 'power2.in',
       force3D: true
     })
+
+    // Start the timeline immediately
+    timelineRef.current.play()
 
     return () => {
       if (timelineRef.current) {
@@ -63,7 +70,7 @@ const FoodItemCard = ({ item, onClose }) => {
       }
       gsap.killTweensOf(card)
     }
-  }, [item, onClose])
+  }, [item?.name])  // Only re-run when item NAME changes, not the whole object or onClose
 
   if (!item) return null
 

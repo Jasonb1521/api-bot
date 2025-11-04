@@ -65,7 +65,7 @@ asr_service = None
 # VAD settings
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 512
-VAD_THRESHOLD = 0.5
+VAD_THRESHOLD = 0.8
 MIN_SILENCE_MS = 500
 PRE_ROLL_MS = 300
 POST_ROLL_MS = 500
@@ -435,8 +435,8 @@ async def extract_order_items(client_state: dict) -> list:
 
 async def send_sentence_to_tts(sentence: str, sentence_idx: int, websocket: WebSocket, client_state: dict):
     """
-    Send a single sentence to TTS and stream the audio to the websocket.
-    This function is designed to be run as a parallel task for pipelining.
+    Stream a single sentence to TTS and send audio chunks to websocket in real-time.
+    Uses Sarvam streaming TTS for lower latency - audio starts playing while generating.
 
     Args:
         sentence: The sentence text to convert to speech
@@ -463,12 +463,18 @@ async def send_sentence_to_tts(sentence: str, sentence_idx: int, websocket: WebS
             "text": sentence
         })
 
-        # Synthesize TTS audio for this sentence
-        audio_bytes = await tts_service.synthesize(sentence, language)
+        # Stream TTS audio chunks in real-time
+        chunk_count = 0
+        total_bytes = 0
 
-        if audio_bytes:
-            await websocket.send_bytes(audio_bytes)
-            logger.info(f"✅ Sentence {sentence_idx} TTS complete: {len(audio_bytes)} bytes")
+        async for audio_chunk in tts_service.synthesize_stream(sentence, language):
+            # Send each audio chunk immediately as it's generated
+            await websocket.send_bytes(audio_chunk)
+            chunk_count += 1
+            total_bytes += len(audio_chunk)
+
+        if chunk_count > 0:
+            logger.info(f"✅ Sentence {sentence_idx} streamed: {chunk_count} chunks, {total_bytes} bytes")
         else:
             logger.warning(f"⚠️ No audio generated for sentence {sentence_idx}")
 
@@ -481,7 +487,7 @@ async def send_sentence_to_tts(sentence: str, sentence_idx: int, websocket: WebS
     except WebSocketDisconnect:
         logger.warning(f"WebSocket disconnected during sentence {sentence_idx} TTS")
     except Exception as e:
-        logger.error(f"TTS failed for sentence {sentence_idx}: {e}")
+        logger.error(f"TTS streaming failed for sentence {sentence_idx}: {e}")
 
 
 async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: WebSocket):
@@ -560,8 +566,7 @@ async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: W
             iteration += 1
             logger.info(f"LLM call iteration {iteration}")
 
-            # Get complete LLM response (non-streaming for reliability)
-            tts_tasks = []  # Track TTS tasks for parallel processing
+            # Get complete LLM response (non-streaming)
             sentence_count = 0
 
             # Call Groq API to get complete response
@@ -697,24 +702,21 @@ async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: W
                 logger.error("❌ Unexpected response type from Groq")
                 content = "மன்னிக்கவும், தொழில்நுட்ப சிக்கல்."
 
-            # Send final text response to TTS
+            # Send final text response to TTS (with streaming TTS)
             if content.strip():
-                logger.info(f"📢 Sending complete response to TTS: {content[:50]}...")
+                logger.info(f"📢 Sending complete response to streaming TTS: {content[:50]}...")
 
                 # Signal audio stream start (for frontend to reset state)
                 await websocket.send_json({
                     "type": "audio_stream_start"
                 })
 
-                tts_task = asyncio.create_task(
-                    send_sentence_to_tts(
-                        content,
-                        1,  # sentence number
-                        websocket,
-                        client_state
-                    )
+                await send_sentence_to_tts(
+                    content,
+                    1,  # sentence number
+                    websocket,
+                    client_state
                 )
-                tts_tasks.append(tts_task)
                 sentence_count = 1
             else:
                 logger.warning("⚠️ No content to send to TTS")
@@ -722,13 +724,8 @@ async def chat_with_llm_stream(user_input: str, client_state: dict, websocket: W
 
             logger.info(f"📊 Response processing complete - sentence_count: {sentence_count}")
 
-            # Wait for all TTS tasks to complete
-            if tts_tasks:
-                logger.info(f"⏳ Waiting for {len(tts_tasks)} TTS tasks to complete...")
-                await asyncio.gather(*tts_tasks)
-                logger.info("✅ All TTS tasks completed")
-
-                # Send audio_stream_complete signal for frontend food item detection
+            # Send audio_stream_complete signal for frontend food item detection
+            if sentence_count > 0:
                 await websocket.send_json({
                     "type": "audio_stream_complete",
                     "total_sentences": sentence_count
@@ -949,16 +946,14 @@ async def websocket_endpoint(websocket: WebSocket):
                                         "message": f"ஆர்டர் #{last_tool_result['order_id']} கன்ஃபர்ம் ஆச்சு!"
                                     })
 
-                                    # Generate confirmation TTS
+                                    # Generate confirmation TTS (streaming)
                                     if tts_service:
                                         confirmation_text = f"ஆர்டர் #{last_tool_result['order_id']} கன்ஃபர்ம் ஆச்சு! பில் கிச்சனுக்கு போயிடுச்சு."
-                                        audio_bytes = await tts_service.synthesize(confirmation_text)
-                                        if audio_bytes:
-                                            await websocket.send_json({
-                                                "type": "confirmation_audio_start",
-                                                "size": len(audio_bytes)
-                                            })
-                                            await websocket.send_bytes(audio_bytes)
+                                        await websocket.send_json({
+                                            "type": "confirmation_audio_start"
+                                        })
+                                        async for audio_chunk in tts_service.synthesize_stream(confirmation_text):
+                                            await websocket.send_bytes(audio_chunk)
 
                                     # Wait 2 seconds
                                     await asyncio.sleep(2)
@@ -975,12 +970,11 @@ async def websocket_endpoint(websocket: WebSocket):
                                         "message": "வேற எதாவது வேணுமா?"
                                     })
 
-                                    # Generate "want more?" TTS
+                                    # Generate "want more?" TTS (streaming)
                                     if tts_service:
                                         more_text = "வேற எதாவது வேணுமா?"
-                                        audio_bytes = await tts_service.synthesize(more_text)
-                                        if audio_bytes:
-                                            await websocket.send_bytes(audio_bytes)
+                                        async for audio_chunk in tts_service.synthesize_stream(more_text):
+                                            await websocket.send_bytes(audio_chunk)
 
                                 elif last_tool_result.get("resume_asr"):
                                     # Print failed, resume ASR

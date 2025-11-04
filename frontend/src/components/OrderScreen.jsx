@@ -164,8 +164,10 @@ const OrderScreen = ({ onClose }) => {
   const [conversationHistory, setConversationHistory] = useState([])
   const [audioLevel, setAudioLevel] = useState(0)
 
-  // Food item card state
+  // Food item card state with queue
   const [highlightedItem, setHighlightedItem] = useState(null)
+  const [itemQueue, setItemQueue] = useState([])
+  const [isShowingCard, setIsShowingCard] = useState(false)
 
   // WebSocket and audio refs
   const wsRef = useRef(null)
@@ -181,6 +183,20 @@ const OrderScreen = ({ onClose }) => {
   const menuSideRef = useRef(null)
   const lastHighlightedItemRef = useRef({ name: null, timestamp: 0 })
   const fullBotResponseRef = useRef('') // Accumulate full response for food detection
+
+  // Process food item queue - show cards sequentially
+  useEffect(() => {
+    if (itemQueue.length > 0 && !isShowingCard && !highlightedItem) {
+      // Get next item from queue
+      const [nextItem, ...remainingQueue] = itemQueue
+      console.log(`🎴 Showing card for: ${nextItem.name} (${remainingQueue.length} remaining in queue)`)
+
+      setHighlightedItem(nextItem)
+      setItemQueue(remainingQueue)
+      setIsShowingCard(true)
+      lastHighlightedItemRef.current = { name: nextItem.name, timestamp: Date.now() }
+    }
+  }, [itemQueue, isShowingCard, highlightedItem])
 
   const SAMPLE_RATE = 16000
   const CHUNK_SIZE = 512
@@ -284,19 +300,21 @@ const OrderScreen = ({ onClose }) => {
               console.log('🔍 Detected items:', detectedItems)
 
               if (detectedItems.length > 0) {
-                const item = detectedItems[0]
-                const now = Date.now()
-                const lastHighlight = lastHighlightedItemRef.current
+                console.log(`🍽️ Detected ${detectedItems.length} food item(s)`)
 
-                console.log('⏱️ Last highlighted:', lastHighlight, 'Time diff:', now - lastHighlight.timestamp)
+                // Filter out duplicates and add ALL items to queue
+                const newItems = detectedItems.filter(item => {
+                  const lastHighlight = lastHighlightedItemRef.current
+                  const now = Date.now()
+                  // Skip if same item shown recently (within 5 seconds)
+                  return item.name !== lastHighlight.name || (now - lastHighlight.timestamp) > 5000
+                })
 
-                // Only show card if it's a different item OR it's been more than 5 seconds
-                if (item.name !== lastHighlight.name || (now - lastHighlight.timestamp) > 5000) {
-                  console.log('🍽️ Detected food item:', item.name)
-                  setHighlightedItem(item)
-                  lastHighlightedItemRef.current = { name: item.name, timestamp: now }
+                if (newItems.length > 0) {
+                  console.log(`➕ Adding ${newItems.length} item(s) to queue:`, newItems.map(i => i.name))
+                  setItemQueue(prev => [...prev, ...newItems])
                 } else {
-                  console.log('⏭️ Skipping duplicate item:', item.name)
+                  console.log('⏭️ All items are duplicates, skipping')
                 }
               } else {
                 console.log('❌ No food items detected in response')
@@ -307,6 +325,11 @@ const OrderScreen = ({ onClose }) => {
           } else if (data.type === 'order_confirmed') {
             // Order confirmed - show confirmation screen
             console.log('✅ Order confirmed:', data)
+
+            // Hide any food item cards
+            setHighlightedItem(null)
+            setIsShowingCard(false)
+            setItemQueue([])
 
             // Set the order confirmation state with confirmed items
             setOrders(data.items || [])
@@ -823,7 +846,11 @@ const OrderScreen = ({ onClose }) => {
       {highlightedItem && (
         <FoodItemCard
           item={highlightedItem}
-          onClose={() => setHighlightedItem(null)}
+          onClose={() => {
+            console.log('🎴 Card closed, processing next item...')
+            setHighlightedItem(null)
+            setIsShowingCard(false)
+          }}
         />
       )}
     </div>

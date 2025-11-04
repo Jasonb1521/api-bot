@@ -824,7 +824,7 @@
 }
 
 /* Order Confirmation Modal */
-.order-confirmation-overlay {
+.order-confirmation {
   position: fixed;
   top: 0;
   left: 0;
@@ -847,14 +847,36 @@
   }
 }
 
-.order-confirmation-card {
+.confirmation-content {
   background: white;
   border-radius: 16px;
   padding: 3rem 2.5rem;
-  max-width: 400px;
+  max-width: 500px;
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.confirmation-content h2 {
+  color: #282c3f;
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.confirmation-content > p {
+  color: #686b78;
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.confirmation-content h3 {
+  color: #282c3f;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
 }
 
 @keyframes slideUp {
@@ -869,6 +891,36 @@
 }
 
 /* Success Checkmark Animation */
+.checkmark {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  display: block;
+}
+
+.checkmark-circle {
+  stroke: #ff8c00;
+  stroke-width: 2;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  stroke: #ff8c00;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
 .success-checkmark {
   width: 80px;
   height: 80px;
