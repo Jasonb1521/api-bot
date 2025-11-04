@@ -1,9 +1,12 @@
 """Main FastAPI application for HotelOrderBot audio service."""
 
+# Disable tqdm progress bars BEFORE any imports that might use it
+import os
+os.environ['TQDM_DISABLE'] = '1'
+
 import asyncio
 import logging
 import numpy as np
-import os
 import torch
 import json
 import wave
@@ -14,8 +17,16 @@ from collections import deque
 from typing import Dict
 from datetime import datetime
 from qdrant_client import QdrantClient
+
 try:
     from sentence_transformers import SentenceTransformer
+    # Monkey-patch the encode method to disable progress bar
+    if SentenceTransformer is not None:
+        _original_encode = SentenceTransformer.encode
+        def _encode_no_progress(self, *args, **kwargs):
+            kwargs['show_progress_bar'] = False
+            return _original_encode(self, *args, **kwargs)
+        SentenceTransformer.encode = _encode_no_progress
 except Exception:
     SentenceTransformer = None
 
